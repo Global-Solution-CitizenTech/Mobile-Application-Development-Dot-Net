@@ -1,0 +1,36 @@
+import type { StatusChamado } from '@/types/categoria';
+
+export interface FiltroChamados {
+  status?: StatusChamado;
+  categoria?: string;
+  categoriaId?: number;
+  busca?: string;
+  apenasMeus?: boolean;
+  cidade?: string;
+  bairro?: string;
+  estado?: string;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
+export type MeusChamadosTab = 'TODOS' | 'ATIVOS' | 'CONCLUIDOS';
+
+export type RadarSortOption = 'RECENTES' | 'MAIS_APOIADOS';
+
+export type StatusFiltro = StatusChamado | 'TODOS';
+
+export type LocationFilterLevel = 'CIDADE' | 'BAIRRO' | 'ESTADO';
+
+export interface RadarLocationFilter {
+  nivel: LocationFilterLevel;
+  valor: string | null;
+}
+
+export interface SelectPickerOption<T extends string = string> {
+  value: T;
+  label: string;
+  subtitle?: string;
+}
+
+export type RadarActiveModal = 'categoria' | 'status' | 'localizacao' | null;
