@@ -299,6 +299,10 @@ describe('chamadoMappers', () => {
 
       assert.equal(request.titulo, 'Poste com fiação exposta');
       assert.equal(request.descricao, 'Fios caídos no chão oferecendo risco de choque elétrico aos pedestres.');
+      assert.equal(request.categoriaId, 1);
+      assert.equal(request.cep, '01310100');
+      assert.equal(request.numero, '120');
+      assert.equal(request.referencia, 'Próximo à padaria');
       assert.equal(request.categoria, 'ILUMINACAO_PUBLICA');
       assert.equal(request.endereco.cep, '01310100');
     });

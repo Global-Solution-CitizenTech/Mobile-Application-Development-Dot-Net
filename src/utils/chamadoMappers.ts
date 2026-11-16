@@ -169,6 +169,10 @@ export function toChamadoRequest(form: ChamadoFormData): ChamadoRequest {
   return {
     titulo: form.titulo.trim(),
     descricao: form.descricao.trim(),
+    categoriaId: Number(form.categoriaId) || 0,
+    cep: onlyDigits(form.cep),
+    numero: (form.numero?.trim() || 'S/N').slice(0, 100),
+    referencia: form.referencia ? form.referencia.trim().slice(0, 50) : undefined,
     categoria,
     endereco: buildEnderecoRequest(form),
   };

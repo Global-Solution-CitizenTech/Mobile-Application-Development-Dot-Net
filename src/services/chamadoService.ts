@@ -1,4 +1,5 @@
 import { api } from '@/services/api';
+import { CATEGORIA_CATALOG } from '@/theme/semanticConfig';
 import type { PageInfo, PageResponse } from '@/types/api';
 import type { Chamado, ChamadoCreateRequest, ChamadoRequest, ChamadoResponse, ChamadoStatusRequest, EstatisticasChamados } from '@/types/chamado';
 import type { FiltroChamados } from '@/types/filters';
@@ -19,11 +20,17 @@ const ROTA_CHAMADOS = '/chamados';
 
 export const chamadoService = {
   async listar(filtros?: FiltroChamados): Promise<PageResponse<Chamado>> {
+    const resolvedCategoriaId =
+      filtros?.categoriaId ??
+      (filtros?.categoria
+        ? CATEGORIA_CATALOG.find((c) => c.nome === filtros.categoria?.trim().toUpperCase())?.id
+        : undefined);
+
     const { data } = await api.get<PageResponse<ChamadoResponse>>(ROTA_CHAMADOS, {
       params: {
         status: filtros?.status || undefined,
         categoria: filtros?.categoria || undefined,
-        categoriaId: filtros?.categoriaId ?? undefined,
+        categoriaId: resolvedCategoriaId ?? undefined,
         busca: filtros?.busca?.trim() || undefined,
         apenasMeus: filtros?.apenasMeus ?? undefined,
         cidade: filtros?.cidade?.trim() || undefined,
@@ -93,8 +100,10 @@ export const chamadoService = {
     return mapChamadoResponse(data);
   },
 
-  async apoiar(id: number): Promise<Chamado> {
-    const { data } = await api.post<ChamadoResponse>(`${ROTA_CHAMADOS}/${id}/apoiar`);
+  async apoiar(id: number, remover = false): Promise<Chamado> {
+    const { data } = remover
+      ? await api.delete<ChamadoResponse>(`${ROTA_CHAMADOS}/${id}/apoiar`)
+      : await api.post<ChamadoResponse>(`${ROTA_CHAMADOS}/${id}/apoiar`);
     return mapChamadoResponse(data);
   },
 

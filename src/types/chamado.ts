@@ -112,7 +112,11 @@ export interface ChamadoCreateRequest {
 export interface ChamadoRequest {
   titulo: string;
   descricao: string;
-  categoria: string;
+  categoriaId: number;
+  cep: string;
+  numero: string;
+  referencia?: string;
+  categoria?: string;
   endereco: EnderecoRequest;
 }
 

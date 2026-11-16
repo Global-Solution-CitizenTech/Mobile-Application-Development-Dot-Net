@@ -34,9 +34,28 @@ export function useChamadoMutations() {
     },
   });
 
+  const isCurrentlySupported = (id: number): boolean => {
+    const detail = queryClient.getQueryData<Chamado>(queryKeys.chamados.detail(id));
+    if (detail) return detail.apoiadoPorMim;
+    const lists = queryClient.getQueriesData<ChamadoListCache>({
+      queryKey: queryKeys.chamados.lists(),
+    });
+    for (const [, cache] of lists) {
+      if (!cache) continue;
+      if ('pages' in cache) {
+        const found = cache.pages.flatMap((p) => p.content).find((c) => c.idChamado === id);
+        if (found) return found.apoiadoPorMim;
+      } else {
+        const found = cache.content.find((c) => c.idChamado === id);
+        if (found) return found.apoiadoPorMim;
+      }
+    }
+    return false;
+  };
+
   const apoiarMutation = useMutation({
-    mutationFn: (id: number) => chamadoService.apoiar(id),
-    onMutate: async (id) => {
+    mutationFn: ({ id, remover }: { id: number; remover: boolean }) => chamadoService.apoiar(id, remover),
+    onMutate: async ({ id }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.chamados.all });
       const previousLists = queryClient.getQueriesData<ChamadoListCache>({
         queryKey: queryKeys.chamados.lists(),
@@ -55,14 +74,14 @@ export function useChamadoMutations() {
 
       return { previousLists, previousDetail };
     },
-    onError: (error, id, context) => {
+    onError: (error, { id }, context) => {
       context?.previousLists.forEach(([key, data]) => queryClient.setQueryData(key, data));
       if (context?.previousDetail) {
         queryClient.setQueryData(queryKeys.chamados.detail(id), context.previousDetail);
       }
       showError('Não foi possível apoiar', getApiErrorMessage(error, 'Falha ao registrar apoio.'));
     },
-    onSettled: async (_data, _error, id) => {
+    onSettled: async (_data, _error, { id }) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.chamados.detail(id) }),
         invalidateListsAndStats(),
@@ -98,7 +117,7 @@ export function useChamadoMutations() {
     atualizarChamado: (id: number, payload: ChamadoRequest, callbacks?: ActionCallbacks<Chamado>) =>
       updateMutation.mutate({ id, payload }, callbacks),
     apoiarChamado: (id: number, callbacks?: ActionCallbacks<Chamado>) =>
-      apoiarMutation.mutate(id, callbacks),
+      apoiarMutation.mutate({ id, remover: isCurrentlySupported(id) }, callbacks),
     alterarStatus: (id: number, payload: ChamadoStatusRequest, callbacks?: ActionCallbacks<Chamado>) =>
       statusMutation.mutate({ id, payload }, callbacks),
     excluirChamado: (id: number, callbacks?: ActionCallbacks<void>) =>
